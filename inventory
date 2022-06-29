@@ -1,0 +1,84 @@
+import tijd.tijd as tijd
+from datetime import datetime
+import pandas as pd
+
+
+class Inventory:
+    def __init__(self, datum):
+        self.datum = datum
+
+    def inventory(self, datum):
+        if self.datum == "today":
+            datum = tijd.Select_tijd.get_datum_today()
+            datum = datetime.strptime(datum, "%Y-%m-%d")
+            return datum
+        if self.datum == "yesterday":
+            datum = tijd.Select_tijd.get_datum_yesterday()
+            datum = datetime.strptime(datum, "%Y-%m-%d")
+            return datum
+
+    def inventory_report(self):
+        dag = self.inventory(self.datum)
+        f = open("data.csv", "r")
+        data = []
+        f.readline()
+        for row in f:
+            fields = row.strip().split(",")
+            data.append(
+                {
+                    "product_name": fields[1],
+                    "buy_price": float(fields[2]),
+                    "buy_date": fields[3],
+                    "expiration_date": fields[4],
+                    "sell_date": fields[6],
+                }
+            )
+
+        data_inventory = []
+        for i in data:
+            sell_date = [i["sell_date"]]
+            x = datetime.strptime(sell_date[0], "%Y-%m-%d")
+            if x == dag:
+                data_inventory.append(
+                    {
+                        "product_name": fields[1],
+                        "buy_price": float(fields[2]),
+                        "expiration_date": fields[4],
+                    }
+                )
+        fi = open("databs.csv", "r")
+        data = []
+        fi.readline()
+        for row in fi:
+            fields = row.strip().split(",")
+            data.append(
+                {
+                    "product_name": fields[1],
+                    "buy_price": float(fields[2]),
+                    "buy_date": fields[3],
+                    "expiration_date": fields[4],
+                }
+            )
+
+        for i in data:
+            buy_date = [i["buy_date"]]
+            x = datetime.strptime(buy_date[0], "%Y-%m-%d")
+            if dag >= x:
+                data_inventory.append(
+                    {
+                        "product_name": fields[1],
+                        "buy_price": float(fields[2]),
+                        "expiration_date": fields[4],
+                    }
+                )
+        for i in data_inventory:
+            i["count"] = sum(
+                [1 for j in data_inventory if j["product_name"] == i["product_name"]]
+            )
+        x = {k["product_name"]: k for k in data_inventory}.values()
+        df = pd.DataFrame(x)
+        print(df)
+
+
+x = Inventory("today")
+x.inventory_report()
