@@ -1,0 +1,66 @@
+import revenue
+import pandas as pd
+import tijd.tijd as tijd
+from datetime import datetime
+
+class Profit(revenue.Revenue ):
+    df = pd.read_csv("data.csv")
+
+    def __init__(self, report, datum, periode="0"):
+        super().__init__(report, datum, periode)
+        self.revenue_today = super().revenue_today()
+        self.revenue_yesterday = super().revenue_yesterday()
+
+    def profit_yesterday(self):
+        datum = tijd.Select_tijd.get_datum_yesterday()
+        self.df = self.df[self.df["sell_date"] == str(datum)]
+        buys = self.df["buy_price"].sum()
+        profit = self.revenue_yesterday - buys
+        profit = round(profit, 2)
+        return profit
+
+    def profit_today(self):
+        datum = tijd.Select_tijd.get_datum_today()
+        self.df = self.df[self.df["sell_date"] == str(datum)]
+        buys = self.df["buy_price"].sum()
+        profit = self.revenue_today - buys
+        profit = round(profit, 2)
+        return profit
+
+    def profit_tijds_jaar(self, year):
+        self.df["sell_date"] = pd.to_datetime(self.df["sell_date"])
+        self.df = self.df[self.df["sell_date"].dt.year == int(year)]
+        buys = self.df["buy_price"].sum()
+        revenue = self.revenue_tijds_jaar(year)
+        profit = round(revenue - buys, 2)
+        return profit
+
+    def profit_tijds_maand_jaar(self, year, month):
+        self.df["sell_date"] = pd.to_datetime(self.df["sell_date"])
+        self.df = self.df[self.df["sell_date"].dt.month == int(month)]
+        self.df = self.df[self.df["sell_date"].dt.year == int(year)]
+        buys = self.df["buy_price"].sum()
+        revenue = self.revenue_tijds_maand_jaar(year, month)
+        profit = round(revenue - buys, 2)
+        return profit
+
+    def run_profit(self):
+        if self.report == "profit":
+            if self.datum == "today":
+                profit = self.profit_today()
+                print("Today's profit so far:", profit)
+            if self.datum == "yesterday":
+                profit = self.profit_yesterday()
+                print("Yesterday's profit:", profit)
+            if self.datum == "date":
+                tijds_tuple = tijd.Month_and_year(self.periode)
+                year = tijds_tuple.get_year()
+                month = tijds_tuple.get_month()
+                if month is None:
+                    profit = self.profit_tijds_jaar(year)
+                    print("Profit from", year + ":", profit)
+                else:
+                    profit = self.profit_tijds_maand_jaar(year, month)
+                    datetime_object = datetime.strptime(month, "%m")
+                    full_month_name = datetime_object.strftime("%B")
+                    print("Profit from", full_month_name, year + ":", profit)
