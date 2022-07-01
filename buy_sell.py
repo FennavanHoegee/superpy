@@ -183,6 +183,9 @@ class Sell_invoeg1(Sell_invoeg, Sell):
             sold_csv.close()
 
     def inventory_out(self):
+        if self.bought_id == 0:
+            print("ERROR: Product not in stock.")
+            exit()
         df = pd.read_csv("inventory.csv")
         for i, row in df.iterrows():
             if int(row["bought_id"]) == int(self.bought_id):
